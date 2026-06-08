@@ -15,7 +15,7 @@ const {
 router.post(
   '/',
   authenticateToken,
-  authorizeRoles('verifikator', 'admin'),
+  authorizeRoles('verifikator'),
   createVerification
 );
 

@@ -22,20 +22,36 @@ router.get('/auth-test', authenticateToken, (req, res) => {
   });
 });
 
-// GET ALL USERS
-router.get('/', authenticateToken, authorizeRoles('admin'), async (req, res) => {
+// CREATE USER
+router.post('/', authenticateToken, authorizeRoles('admin'), async (req, res) => {
   try {
-    const [rows] = await db.query(
-      'SELECT id, name, email, role FROM users'
+
+    const { name, email, role } = req.body;
+
+    if (!name || !email || !role) {
+      return res.status(400).json({
+        message: 'Semua field wajib diisi'
+      });
+    }
+
+    const [result] = await db.query(
+      'INSERT INTO users (name, email, role) VALUES (?, ?, ?)',
+      [name, email, role]
     );
 
-    res.json({
-      message: 'Berhasil ambil semua user',
-      data: rows,
+    res.status(201).json({
+      message: 'User berhasil dibuat',
+      data: {
+        id: result.insertId,
+        name,
+        email,
+        role
+      }
     });
+
   } catch (error) {
     res.status(500).json({
-      message: 'Gagal ambil data user',
+      message: 'Error create user',
       error: error.message
     });
   }
@@ -69,6 +85,25 @@ router.get('/me', authenticateToken, async (req, res) => {
   }
 });
 
+// GET ALL USERS
+router.get('/', authenticateToken, authorizeRoles('admin'), async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      'SELECT id, name, email, role FROM users'
+    );
+
+    res.json({
+      message: 'Berhasil ambil semua user',
+      data: rows,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Gagal ambil data user',
+      error: error.message
+    });
+  }
+});
+
 // GET USER BY ID
 router.get('/:id', authenticateToken, authorizeRoles('admin'), async (req, res) => {
   try {
@@ -92,41 +127,6 @@ router.get('/:id', authenticateToken, authorizeRoles('admin'), async (req, res) 
   } catch (error) {
     res.status(500).json({
       message: 'Error ambil detail user',
-      error: error.message
-    });
-  }
-});
-
-// CREATE USER
-router.post('/', authenticateToken, authorizeRoles('admin'), async (req, res) => {
-  try {
-
-    const { name, email, role } = req.body;
-
-    if (!name || !email || !role) {
-      return res.status(400).json({
-        message: 'Semua field wajib diisi'
-      });
-    }
-
-    const [result] = await db.query(
-      'INSERT INTO users (name, email, role) VALUES (?, ?, ?)',
-      [name, email, role]
-    );
-
-    res.status(201).json({
-      message: 'User berhasil dibuat',
-      data: {
-        id: result.insertId,
-        name,
-        email,
-        role
-      }
-    });
-
-  } catch (error) {
-    res.status(500).json({
-      message: 'Error create user',
       error: error.message
     });
   }
