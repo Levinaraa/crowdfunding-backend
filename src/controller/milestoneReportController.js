@@ -73,4 +73,22 @@ exports.createReport = async (req, res) => {
       message: error.message
     });
   }
+  exports.getReportsByMilestone = async (req, res) => {
+  try {
+
+    const [rows] = await db.query(`
+      SELECT *
+      FROM milestone_reports
+      WHERE milestone_id = ?
+      ORDER BY created_at DESC
+    `, [req.params.milestoneId]);
+
+    res.json(rows);
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
 };
