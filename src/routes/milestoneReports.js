@@ -5,7 +5,8 @@ const authenticateToken = require('../middlewares/authmiddle');
 const authorizeRoles = require('../middlewares/rolemiddleware');
 
 const {
-  createReport
+  createReport,
+  getReportsByMilestone
 } = require('../controller/milestoneReportController');
 
 
@@ -17,4 +18,10 @@ router.post(
   createReport
 );
 
+router.get(
+  '/milestone/:milestoneId',
+  authenticateToken,
+  authorizeRoles('donatur', 'fundraiser', 'admin'),
+  getReportsByMilestone
+);
 module.exports = router;
