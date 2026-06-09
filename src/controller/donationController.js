@@ -75,11 +75,33 @@ exports.getMyDonations = async (req, res) => {
 
     const [rows] = await db.query(`
       SELECT 
-        donations.*,
-        campaigns.title AS campaign_title
+      donations.*,
+      campaigns.title AS campaign_title
       FROM donations
       JOIN campaigns ON donations.campaign_id = campaigns.id
-      WHERE user_id = ?
+      WHERE donations.user_id = ?
+      `, [req.authUser.id]);
+    res.json(rows);
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
+
+// get donation fundraiser
+exports.getMyCampaignDonations = async (req, res) => {
+  try {
+
+    const [rows] = await db.query(`
+      SELECT
+        d.*,
+        c.title AS campaign_title
+      FROM donations d
+      JOIN campaigns c ON d.campaign_id = c.id
+      WHERE c.user_id = ?
+      ORDER BY d.created_at DESC
     `, [req.authUser.id]);
 
     res.json(rows);
@@ -90,7 +112,6 @@ exports.getMyDonations = async (req, res) => {
     });
   }
 };
-
 
 // GET DETAIL DONATION
 exports.getDonationById = async (req, res) => {

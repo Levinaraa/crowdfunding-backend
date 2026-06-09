@@ -9,7 +9,8 @@ const {
   getAllDonations,
   getDonationById,
   getMyDonations,
-  deleteDonation
+  deleteDonation,
+  getMyCampaignDonations
 } = require('../controller/donationController');
 
 
@@ -48,5 +49,12 @@ router.get(
   getDonationById
 );
 
+// GET DONATIONS FOR MY CAMPAIGNS (FUNDRAISER)
+router.get(
+  '/campaigns/my',
+  authenticateToken,
+  authorizeRoles('fundraiser', 'admin'),
+  getMyCampaignDonations
+);
 
 module.exports = router;
