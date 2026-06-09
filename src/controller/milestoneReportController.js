@@ -12,7 +12,6 @@ exports.createReport = async (req, res) => {
       proof
     } = req.body;
 
-    // cek milestone ada atau tidak
     const [milestoneRows] = await db.query(`
       SELECT
         milestones.*,
@@ -30,10 +29,7 @@ exports.createReport = async (req, res) => {
     }
 
     const milestone = milestoneRows[0];
-    console.log('auth user:', req.authUser);
-    console.log('milestone user:', milestone.user_id);
-    
-    // fundraiser hanya boleh buat report milestone miliknya
+
     if (
       req.authUser.role === 'fundraiser' &&
       milestone.user_id !== req.authUser.id
@@ -43,7 +39,6 @@ exports.createReport = async (req, res) => {
       });
     }
 
-    // insert report
     const [result] = await db.query(`
       INSERT INTO milestone_reports
       (
@@ -73,7 +68,11 @@ exports.createReport = async (req, res) => {
       message: error.message
     });
   }
-  exports.getReportsByMilestone = async (req, res) => {
+};
+
+
+// GET REPORTS BY MILESTONE
+exports.getReportsByMilestone = async (req, res) => {
   try {
 
     const [rows] = await db.query(`
@@ -90,5 +89,4 @@ exports.createReport = async (req, res) => {
       message: error.message
     });
   }
-};
 };
