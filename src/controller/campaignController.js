@@ -174,7 +174,7 @@ exports.verifyCampaign = async (req, res) => {
 
     await db.query(
       `UPDATE campaigns
-      SET verification_status = 'active'
+      SET status = 'active'
       WHERE id = ?`,
       [req.params.id]
     );
