@@ -1,7 +1,7 @@
 const db = require('../config/db');
 
 
-// CREATE
+// create 
 exports.createMilestone = async (req, res) => {
   try {
 
@@ -26,7 +26,7 @@ exports.createMilestone = async (req, res) => {
 
     const campaign = campaignRows[0];
 
-    // fundraiser hanya boleh buat milestone campaign miliknya
+    // fundraiser cmn boleh buat milestone campaign punya sendiri
     if (
   req.authUser.role === 'fundraiser' &&
   campaign.user_id !== req.authUser.id

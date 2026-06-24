@@ -3,71 +3,125 @@ const db = require('../config/db');
 
 // CREATE DONATION
 exports.createDonation = async (req, res) => {
-  try {
+try {
+const {
+  campaign_id,
+  amount,
+  message
+} = req.body;
 
-    const {
-      campaign_id,
-      amount,
-      message
-    } = req.body;
+const user_id = req.authUser.id;
 
-    const user_id = req.authUser.id;
+if (!amount || amount <= 0) {
+  return res.status(400).json({
+    message: 'Nominal donasi harus lebih dari 0'
+  });
+}
 
-    // cek campaign ada
-    const [campaign] = await db.query(
-      'SELECT * FROM campaigns WHERE id = ?',
-      [campaign_id]
-    );
+const [campaignRows] = await db.query(
+  'SELECT * FROM campaigns WHERE id = ?',
+  [campaign_id]
+);
 
-    if (campaign.length === 0) {
-      return res.status(404).json({
-        message: 'Campaign tidak ditemukan'
-      });
-    }
+if (campaignRows.length === 0) {
+  return res.status(404).json({
+    message: 'Campaign tidak ditemukan'
+  });
+}
 
-    const [result] = await db.query(
-      `INSERT INTO donations
-      (campaign_id, user_id, amount, message)
-      VALUES (?, ?, ?, ?)`,
-      [campaign_id, user_id, amount, message]
-    );
+const campaign = campaignRows[0];
 
-    res.status(201).json({
-      message: 'Donasi berhasil',
-      user_id: result.insertId
-    });
+if (campaign.status !== 'active') {
+  return res.status(400).json({
+    message: 'Campaign belum aktif atau sudah selesai'
+  });
+}
 
-  } catch (error) {
-    res.status(500).json({
-      message: error.message
-    });
-  }
+const [result] = await db.query(
+  `INSERT INTO donations
+  (
+    campaign_id,
+    user_id,
+    amount,
+    message,
+    status
+  )
+  VALUES (?, ?, ?, ?, ?)`,
+  [
+    campaign_id,
+    user_id,
+    amount,
+    message,
+    'success'
+  ]
+);
+
+const [totalRows] = await db.query(`
+  SELECT IFNULL(SUM(amount),0) AS total_collected
+  FROM donations
+  WHERE campaign_id = ?
+  AND status = 'success'
+`, [campaign_id]);
+
+const totalCollected = totalRows[0].total_collected;
+
+if (totalCollected >= campaign.target_amount) {
+
+  await db.query(`
+    UPDATE campaigns
+    SET status = 'funded'
+    WHERE id = ?
+  `, [campaign_id]);
+
+}
+
+res.status(201).json({
+  message: 'Donasi berhasil',
+  donation_id: result.insertId,
+  total_collected: totalCollected
+});
+
+
+} catch (error) {
+
+console.error(error);
+
+res.status(500).json({
+  message: error.message
+});
+
+}
 };
-
 
 // GET ALL DONATIONS
 exports.getAllDonations = async (req, res) => {
   try {
 
     const [rows] = await db.query(`
-      SELECT 
-        donations.*,
-        users.name AS donor_name,
-        campaigns.title AS campaign_title
-      FROM donations
-      JOIN users ON donations.user_id = users.id
-      JOIN campaigns ON donations.campaign_id = campaigns.id
+      SELECT
+        d.*,
+        u.name AS donor_name,
+        c.title AS campaign_title
+      FROM donations d
+      JOIN users u
+        ON d.user_id = u.id
+      JOIN campaigns c
+        ON d.campaign_id = c.id
+      ORDER BY d.created_at DESC
     `);
 
     res.json(rows);
 
   } catch (error) {
+
+    console.error(error);
+
     res.status(500).json({
       message: error.message
     });
+
   }
 };
-
 
 // GET MY DONATIONS
 exports.getMyDonations = async (req, res) => {

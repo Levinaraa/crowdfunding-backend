@@ -8,11 +8,10 @@ const {
   getDashboard
 } = require('../controller/dashboardController');
 
-// DASHBOARD
 router.get(
   '/',
   authenticateToken,
-  authorizeRoles('fundraiser', 'admin'),
+  authorizeRoles('admin', 'fundraiser'),
   getDashboard
 );
 

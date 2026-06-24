@@ -7,6 +7,7 @@ const SCRYPT_PARAMS = {
 const JWT_SECRET = 'super_secret_jwt_key_1234567890'; // Hardcode
 const JWT_EXPIRES_IN_SECONDS = 3600;
 
+// ubah jd format base64url
 function encodeBase64Url(value) {
   return Buffer.from(value).toString('base64url');
 }
@@ -14,6 +15,7 @@ function encodeBase64Url(value) {
 function decodeBase64Url(value) {
   return Buffer.from(value, 'base64url').toString();
 }
+
 
 function hashPassword(password) {
   const salt = crypto.randomBytes(SCRYPT_PARAMS.saltlen);
@@ -43,6 +45,7 @@ function verifyPassword(password, storedHash) {
   }
 }
 
+//buat token 
 function signJwt(payload, expiresInSeconds = JWT_EXPIRES_IN_SECONDS) {
   const header = { alg: 'HS256', typ: 'JWT' };
   const now = Math.floor(Date.now() / 1000);
@@ -63,7 +66,6 @@ function verifyJwt(token) {
   if (!encodedHeader || !encodedPayload || !encodedSignature) {
     throw new Error('Invalid token format');
   }
-  
   const content = `${encodedHeader}.${encodedPayload}`;
   const expectedSignature = crypto.createHmac('sha256', JWT_SECRET)
     .update(content).digest('base64url');
@@ -71,12 +73,10 @@ function verifyJwt(token) {
   if (!crypto.timingSafeEqual(Buffer.from(encodedSignature), Buffer.from(expectedSignature))) {
     throw new Error('Invalid signature');
   }
-  
   const payload = JSON.parse(decodeBase64Url(encodedPayload));
   if (payload.exp && Math.floor(Date.now() / 1000) >= payload.exp) {
     throw new Error('Token expired');
   }
-  
   return payload;
 }
 

@@ -68,7 +68,6 @@ exports.createVerification = async (req, res) => {
   }
 };
 
-
 // GET ALL VERIFICATIONS
 exports.getAllVerifications = async (req, res) => {
   try {

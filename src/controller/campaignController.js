@@ -7,15 +7,37 @@ exports.createCampaign = async (req, res) => {
     const {
       title,
       description,
-      target_amount
+      target_amount,
+      deadline
     } = req.body;
 
+    if (!title || !description || !target_amount || !deadline) {
+      return res.status(400).json({
+        message: 'Semua field wajib diisi'
+      });
+    }
+
     const user_id = req.authUser.id;
+
     const [result] = await db.query(
       `INSERT INTO campaigns
-      (title, description, target_amount, user_id)
-      VALUES (?, ?, ?, ?)`,
-      [title, description, target_amount, user_id]
+      (
+        title,
+        description,
+        target_amount,
+        user_id,
+        deadline,
+        status
+      )
+      VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        title,
+        description,
+        target_amount,
+        user_id,
+        deadline,
+        'draft'
+      ]
     );
 
     res.status(201).json({
@@ -24,6 +46,9 @@ exports.createCampaign = async (req, res) => {
     });
 
   } catch (error) {
+
+    console.error(error);
+
     res.status(500).json({
       message: error.message
     });
@@ -78,7 +103,7 @@ exports.getCampaignById = async (req, res) => {
 exports.updateCampaign = async (req, res) => {
   try {
 
-    const { title, description, target_amount } = req.body;
+    const { title, description, target_amount, deadline, status } = req.body;
 
     const [campaignRows] = await db.query(
       'SELECT * FROM campaigns WHERE id = ?',
@@ -105,9 +130,9 @@ if (
 
     await db.query(
       `UPDATE campaigns
-      SET title = ?, description = ?, target_amount = ?
+      SET title = ?, description = ?, target_amount = ?, deadline = ?, status =?
       WHERE id = ?`,
-      [title, description, target_amount, req.params.id]
+      [title, description, target_amount, deadline, status, req.params.id]
     );
 
     res.json({
@@ -149,7 +174,7 @@ exports.verifyCampaign = async (req, res) => {
 
     await db.query(
       `UPDATE campaigns
-      SET verification_status = 'verified'
+      SET verification_status = 'active'
       WHERE id = ?`,
       [req.params.id]
     );
@@ -164,3 +189,4 @@ exports.verifyCampaign = async (req, res) => {
     });
   }
 };
+

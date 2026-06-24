@@ -9,7 +9,6 @@ const {
   getAllDonations,
   getDonationById,
   getMyDonations,
-  deleteDonation,
   getMyCampaignDonations
 } = require('../controller/donationController');
 
@@ -23,7 +22,7 @@ router.post(
 );
 
 
-// GET ALL DONATIONS
+// GET ALL DONATIONS (ADMIN)
 router.get(
   '/',
   authenticateToken,
@@ -32,12 +31,21 @@ router.get(
 );
 
 
-// GET MY DONATIONS
+// GET MY DONATIONS (DONATUR)
 router.get(
   '/my',
   authenticateToken,
   authorizeRoles('donatur', 'admin'),
   getMyDonations
+);
+
+
+// GET DONATIONS FOR MY CAMPAIGNS (FUNDRAISER)
+router.get(
+  '/campaigns/my',
+  authenticateToken,
+  authorizeRoles('fundraiser', 'admin'),
+  getMyCampaignDonations
 );
 
 
@@ -47,14 +55,6 @@ router.get(
   authenticateToken,
   authorizeRoles('donatur', 'admin'),
   getDonationById
-);
-
-// GET DONATIONS FOR MY CAMPAIGNS (FUNDRAISER)
-router.get(
-  '/campaigns/my',
-  authenticateToken,
-  authorizeRoles('fundraiser', 'admin'),
-  getMyCampaignDonations
 );
 
 module.exports = router;
