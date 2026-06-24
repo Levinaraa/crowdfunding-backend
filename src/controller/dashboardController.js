@@ -16,16 +16,34 @@ exports.getDashboard = async (req, res) => {
         FROM campaigns
       `);
 
-      const [verifiedCampaignRows] = await db.query(`
-        SELECT COUNT(*) AS verified_campaigns
+      const [activeCampaignRows] = await db.query(`
+        SELECT COUNT(*) AS active_campaigns
         FROM campaigns
-        WHERE verification_status = 'verified'
+        WHERE status = 'active'
       `);
 
-      const [pendingCampaignRows] = await db.query(`
-        SELECT COUNT(*) AS pending_campaigns
+      const [draftCampaignRows] = await db.query(`
+        SELECT COUNT(*) AS draft_campaigns
         FROM campaigns
-        WHERE verification_status = 'pending'
+        WHERE status = 'draft'
+      `);
+
+      const [fundedCampaignRows] = await db.query(`
+        SELECT COUNT(*) AS funded_campaigns
+        FROM campaigns
+        WHERE status = 'funded'
+      `);
+
+      const [completedCampaignRows] = await db.query(`
+        SELECT COUNT(*) AS completed_campaigns
+        FROM campaigns
+        WHERE status = 'completed'
+      `);
+
+      const [rejectedCampaignRows] = await db.query(`
+        SELECT COUNT(*) AS rejected_campaigns
+        FROM campaigns
+        WHERE status = 'rejected'
       `);
 
       const [donationRows] = await db.query(`
@@ -65,8 +83,12 @@ exports.getDashboard = async (req, res) => {
 
       return res.json({
         total_campaigns: campaignRows[0].total_campaigns,
-        verified_campaigns: verifiedCampaignRows[0].verified_campaigns,
-        pending_campaigns: pendingCampaignRows[0].pending_campaigns,
+
+        active_campaigns: activeCampaignRows[0].active_campaigns,
+        draft_campaigns: draftCampaignRows[0].draft_campaigns,
+        funded_campaigns: fundedCampaignRows[0].funded_campaigns,
+        completed_campaigns: completedCampaignRows[0].completed_campaigns,
+        rejected_campaigns: rejectedCampaignRows[0].rejected_campaigns,
 
         total_donations: donationRows[0].total_donations,
 
