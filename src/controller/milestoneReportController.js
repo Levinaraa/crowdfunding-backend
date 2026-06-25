@@ -70,6 +70,35 @@ exports.createReport = async (req, res) => {
   }
 };
 
+// GET ALL REPORTS
+exports.getAllReports = async (req, res) => {
+  try {
+
+    const [rows] = await db.query(`
+      SELECT
+        mr.*,
+        m.title AS milestone_title,
+        c.title AS campaign_title
+      FROM milestone_reports mr
+      JOIN milestones m
+        ON mr.milestone_id = m.id
+      JOIN campaigns c
+        ON m.campaign_id = c.id
+      ORDER BY mr.created_at DESC
+    `);
+
+    res.json(rows);
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      message: error.message
+    });
+
+  }
+};
 
 // GET REPORTS BY MILESTONE
 exports.getReportsByMilestone = async (req, res) => {
